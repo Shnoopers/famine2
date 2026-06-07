@@ -1,0 +1,10 @@
+spawning system
+each bug has an agression value from 1 to 20 depending on which night it is (higher the night, higher the agression)
+there is a timer that runs from a minimum number to the current agression value with the number being subtracted from 20
+lets say a bug has a agression of 7 and a minimum movement of 2
+the system will first check to see if the bug can spawn (depends on conditions that vary from bug to bug)
+it if run a timer between 2 to 13 seconds
+after this, the bug will check again and if it can spawn, it will
+if not, it will wait until the conditions are right and be put on a wait list
+
+ 

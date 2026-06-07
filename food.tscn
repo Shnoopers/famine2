@@ -1,0 +1,64 @@
+[gd_scene load_steps=5 format=3 uid="uid://cb5dpiiwfydrt"]
+
+[sub_resource type="GDScript" id="GDScript_4x0hx"]
+resource_name = "food"
+script/source = "extends Node3D
+
+
+# Called when the node enters the scene tree for the first time.
+func _ready() -> void:
+	pass
+
+
+# Called every frame. 'delta' is the elapsed time since the previous frame.
+func _process(delta: float) -> void:
+	pass
+
+func is_clicked() -> void:
+	queue_free()
+"
+
+[sub_resource type="GDScript" id="GDScript_8txok"]
+script/source = "extends CSGSphere3D
+
+
+# Called when the node enters the scene tree for the first time.
+func _ready() -> void:
+	pass # Replace with function body.
+
+# Called every frame. 'delta' is the elapsed time since the previous frame.
+func _process(delta: float) -> void:
+	pass
+"
+
+[sub_resource type="GDScript" id="GDScript_pohk7"]
+script/source = "extends Area3D
+
+func food() -> void:
+	pass
+# Called when the node enters the scene tree for the first time.
+func _ready() -> void:
+	pass # Replace with function body.
+
+
+# Called every frame. 'delta' is the elapsed time since the previous frame.
+func _process(delta: float) -> void:
+	pass
+func delete() -> void:
+	$\"../..\".queue_free()
+"
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_8txok"]
+
+[node name="food" type="Node3D"]
+script = SubResource("GDScript_4x0hx")
+
+[node name="CSGSphere3D" type="CSGSphere3D" parent="."]
+script = SubResource("GDScript_8txok")
+
+[node name="Area3D" type="Area3D" parent="CSGSphere3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.019545346, 0)
+script = SubResource("GDScript_pohk7")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="CSGSphere3D/Area3D"]
+shape = SubResource("SphereShape3D_8txok")

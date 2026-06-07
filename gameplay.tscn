@@ -1,0 +1,475 @@
+[gd_scene load_steps=25 format=3 uid="uid://fjljclgmspsu"]
+
+[ext_resource type="PackedScene" uid="uid://y057p536h286" path="res://player.tscn" id="1_a202f"]
+[ext_resource type="Script" uid="uid://b31sgc5ks0ypy" path="res://player.gd" id="2_2ihbs"]
+[ext_resource type="Script" uid="uid://b565que5dfo0c" path="res://spawning_handler.gd" id="2_fbudy"]
+[ext_resource type="AudioStream" uid="uid://dgvclevt2u7ny" path="res://Minifantasy_Dungeon_SFX/01_chest_open_3.wav" id="2_noarx"]
+[ext_resource type="AudioStream" uid="uid://jokkcrqnqt25" path="res://Minifantasy_Dungeon_SFX/11_human_damage_1.wav" id="3_oe8ih"]
+[ext_resource type="Script" uid="uid://bloenb1k28wj1" path="res://csg_cylinder_3d_2.gd" id="4_0m7cd"]
+[ext_resource type="AudioStream" uid="uid://btpxbf6ag2h2t" path="res://Minifantasy_Dungeon_SFX/09_human_charging_1_loop.wav" id="4_xuee5"]
+[ext_resource type="Script" uid="uid://dk6mqf8x178dh" path="res://food_handler.gd" id="5_0m7cd"]
+[ext_resource type="AudioStream" uid="uid://ded4bm5g56bu0" path="res://dragon-studio-tv-static-323620.mp3" id="5_smepj"]
+
+[sub_resource type="GDScript" id="GDScript_a202f"]
+script/source = "extends Node3D
+var night = 0
+var target_rot_D = 0
+var lapsedoor = 0.0
+var light_state = true
+var door_state = true
+var door_health = 100
+var window = Glass.FULL
+enum Glass {BROKEN, DAMAGED, FULL}
+var speaker = false
+@onready var player = $Player
+@onready var notscript = get_node(\"/root/variables\")
+@onready var light = $OmniLight3D
+@onready var door = $door
+func _ready() -> void:
+	night = notscript.get_night()
+	$\"spawning handler\".set_enemy_level(night)
+func _process(delta: float) -> void:	
+	door.rotation.y = lerp_angle(deg_to_rad(door.rotation_degrees.y), deg_to_rad(target_rot_D), (lapsedoor))
+	lapsedoor += delta
+	if lapsedoor >= 1:
+		lapsedoor = 1
+	if speaker == true and $static/static.is_playing() == false:
+		$static/static.play()
+	if speaker == false:
+		$static/static.stop()
+func _on_player_clicked(object: Variant) -> void:
+	if object.has(\"collider\"):
+		if object[\"collider\"] == $CSGBox3D6/Area3D:
+			_light_switch_click()
+		if object[\"collider\"] == $doorhitbox:
+			door_click()
+		if object[\"collider\"] == $phone/phonehb:
+			phone_click()
+		if object[\"collider\"] == $CSGCylinder3D2/dronecb:
+			drone_click()
+		if object[\"collider\"] == $speaker/speakerhb:
+			speaker_click()
+		if object[\"collider\"].has_method(\"food\"):
+			player.hunger += 10
+			object[\"collider\"].delete()
+	else:
+		pass
+func _light_switch_click() -> void:
+	if light_state == true:
+		light.light_energy = 0.0
+		light_state = false
+	else:
+		light_state = true
+		light.light_energy = 5.0
+
+func door_click() -> void:
+	if door_health <= 0:
+		return
+	lapsedoor = 0
+	if door_state == true:
+		door_state = false
+		target_rot_D = 90
+	else:
+		door_state = true
+		target_rot_D = 0
+func door_hit(dmg) -> void:
+	door_health -= dmg
+	if door_health <= 0:
+		door_state = false
+		$door.visible = false
+		$CSGCylinder3D.visible = false
+func phone_click()	->	void:
+	$\"phone timer\".start()
+func window_hit() -> void:
+	window -= 1
+	if window <= 0:
+		$window.visible = false
+func speaker_click() -> void:
+	speaker = speaker == false
+		
+		
+	
+
+func _on_button_pressed() -> void:
+	target_rot_D = 0
+	lapsedoor = 0.0
+	light_state = true
+	door_state = true
+	door_health = 100
+	window = 2
+	$window.visible = true
+	$door.visible = true
+	$CSGCylinder3D.visible = true
+	$\"spawning handler\".restart()
+	light.light_energy = 5.0
+	$Player.restart()
+	
+
+
+func _on_phone_timer_timeout() -> void:
+	pass
+func drone_click() -> void:
+	$CSGCylinder3D2.begone_drone_scum()
+
+
+func _on_timer_timeout() -> void:
+	$screen/Label2.visible = true
+	notscript.set_night(night + 1)
+	notscript.save_game()
+"
+
+[sub_resource type="GDScript" id="GDScript_noarx"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_a202f"]
+albedo_color = Color(0.47801313, 0.34724882, 0.26007265, 1)
+roughness_texture_channel = 4
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_noarx"]
+transparency = 1
+albedo_color = Color(0, 0.6862745, 0.6901961, 0.09803922)
+
+[sub_resource type="Environment" id="Environment_a202f"]
+background_energy_multiplier = 0.25
+ambient_light_color = Color(1.4439226e-07, 0, 0.3733083, 1)
+ambient_light_energy = 16.0
+fog_enabled = true
+fog_light_color = Color(0, 0.10271048, 8.4228816e-08, 1)
+fog_light_energy = 0.15
+fog_sun_scatter = 0.05
+fog_density = 0.0145
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_a202f"]
+size = Vector3(0.930542, 1.5209961, 8.096069)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_r3fl7"]
+size = Vector3(1.1590576, 3.12508, 1.88031)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_a0tk4"]
+albedo_color = Color(0.2492238, 0.15429011, 2.4065375e-08, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_noarx"]
+font_size = 222
+font_color = Color(1, 0, 0, 1)
+outline_size = 120
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 81
+shadow_color = Color(0, 0, 0, 0.3254902)
+shadow_offset = Vector2(50, 50)
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_noarx"]
+albedo_color = Color(0.2509804, 0.15294118, 0, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_cbffv"]
+size = Vector3(0.376, 0.43813574, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_noarx"]
+size = Vector3(0.41798046, 0.865, 0.501)
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_noarx"]
+height = 0.352
+radius = 0.14
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_a0tk4"]
+height = 0.325
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_a0tk4"]
+radius = 0.01
+
+[node name="Main" type="Node3D"]
+transform = Transform3D(-0.5849153, 0, 0.8110944, 0, 1, 0, -0.8110944, 0, -0.5849153, 0, 0, 0)
+script = SubResource("GDScript_a202f")
+
+[node name="Player" parent="." instance=ExtResource("1_a202f")]
+transform = Transform3D(-0.06627388, -0.56228715, 0.82428217, 0, 0.82609826, 0.56352615, -0.9978016, 0.03734706, -0.05474874, 0, 1.6283705, 0)
+script = ExtResource("2_2ihbs")
+
+[node name="OmniLight3D" type="OmniLight3D" parent="."]
+transform = Transform3D(0.84402853, 0, 0.5362983, 0, 1, 0, -0.5362983, 0, 0.84402853, 0.2988099, 5.0433125, -0.31074092)
+light_color = Color(0.99999946, 0.9818447, 0.6392221, 1)
+light_energy = 3.428
+light_size = 0.885
+omni_range = 9.91
+script = SubResource("GDScript_noarx")
+
+[node name="CSGBox3D2" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.99999994, 0, 0, 0, 1, 0.014092684, 2.1481214, 4.939979)
+size = Vector3(6.9017334, 4.368042, 0.9715576)
+material = SubResource("StandardMaterial3D_a202f")
+
+[node name="CSGBox3D3" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.9999999, 0, 0, 0, 1, 0.028040886, 2.1, -4.895448)
+size = Vector3(6.9017334, 4.368042, 0.9715576)
+material = SubResource("StandardMaterial3D_a202f")
+
+[node name="CSGBox3D4" type="CSGBox3D" parent="."]
+transform = Transform3D(-8.940697e-08, 0, 1, 0, 0.9999998, 0, -1, 0, -8.940697e-08, -3.80018, 2.1969543, 3.5762787e-07)
+size = Vector3(9.014023, 4.5619507, 1.6164818)
+material = SubResource("StandardMaterial3D_a202f")
+
+[node name="CSGBox3D5" type="CSGBox3D" parent="CSGBox3D4"]
+transform = Transform3D(0.97000015, 0, 2.9802322e-08, 0, 0.9700133, 0, -2.9802322e-08, 0, 0.97000015, -3.5762787e-07, 0.92308974, 1.0469995)
+operation = 2
+size = Vector3(2.2641296, 1.8016162, 5.920169)
+
+[node name="CSGBox3D6" type="CSGBox3D" parent="CSGBox3D4"]
+transform = Transform3D(0.9409003, 0, 2.9802322e-08, 0, 0.9409626, 0, -2.9802322e-08, 0, 0.9409003, 2.632883, -0.42213416, -2.1925812)
+operation = 2
+size = Vector3(2.1155663, 3.625959, 7.498764)
+
+[node name="CSGBox3D" type="CSGBox3D" parent="."]
+transform = Transform3D(1.0000001, 0, -8.940697e-08, 0, 0.9999999, 0, 2.9802322e-08, 0, 1.0000002, -0.003809273, 0, -0.009435791)
+size = Vector3(6.9017334, 0.03466797, 10.851318)
+material = SubResource("StandardMaterial3D_a202f")
+
+[node name="CSGBox3D" type="CSGBox3D" parent="CSGBox3D"]
+transform = Transform3D(1.0000002, 0, -1.1920929e-07, 0, 0.9999999, 0, 5.9604645e-08, 0, 1.0000002, 0, 4.1763654, 0)
+size = Vector3(6.9017334, 0.03466797, 10.851318)
+material = SubResource("StandardMaterial3D_a202f")
+
+[node name="window" type="CSGBox3D" parent="."]
+transform = Transform3D(-8.940697e-08, 0, 0.9409003, 0, 0.94092566, 0, -0.9409003, 0, -8.940697e-08, -3.022706, 3.0087326, 0.1696477)
+operation = 2
+size = Vector3(2.953632, 2.6112967, 0.001)
+material = SubResource("StandardMaterial3D_noarx")
+
+[node name="CSGBox3D7" type="CSGBox3D" parent="."]
+transform = Transform3D(-8.940697e-08, 0, 1, 0, 0.9999998, 0, -1, 0, -8.940697e-08, 3.35512, 2.1969543, -0.04253459)
+size = Vector3(9.014023, 4.5619507, 0.71941423)
+material = SubResource("StandardMaterial3D_a202f")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_a202f")
+
+[node name="CSGBox3D8" type="CSGBox3D" parent="."]
+transform = Transform3D(-8.940697e-08, 0, 0.9409003, 0, 0.94092566, 0, -0.9409003, 0, -8.940697e-08, -4.6918864, 3.0087326, 0.17311335)
+operation = 2
+size = Vector3(2.953632, 2.6112967, 0.25411433)
+material = SubResource("StandardMaterial3D_noarx")
+
+[node name="CSGBox3D6" type="CSGBox3D" parent="."]
+transform = Transform3D(-0.3331288, 0, -1.8626451e-09, 0, -0.7045083, 0, -2.9802322e-08, 0, -0.060806677, -3.1946254, 2.914201, 1.7394105)
+size = Vector3(1.7157536, 1.3496094, 6.318716)
+
+[node name="Area3D" type="Area3D" parent="CSGBox3D6"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="CSGBox3D6/Area3D"]
+transform = Transform3D(1, 0, -4.4703484e-08, 0, 1, 0, -9.536743e-07, 0, 1, -0.5793781, -0.043263435, 0.042251587)
+shape = SubResource("BoxShape3D_a202f")
+
+[node name="doorhitbox" type="Area3D" parent="."]
+transform = Transform3D(0.99999994, 0, -1.758337e-06, 0, 1, 0, -5.9604645e-08, 0, 1.0000002, -3.2067723, 1.6718158, -2.6082304)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="doorhitbox"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.08398008, 0.22598183, -0.019196987)
+shape = SubResource("BoxShape3D_r3fl7")
+debug_color = Color(0, 0.6, 0.69803923, 0)
+
+[node name="door" type="Node3D" parent="."]
+transform = Transform3D(-0.3331288, 0, -3.7252903e-09, 0, -0.7045083, 0, -4.4703484e-08, 0, -0.060806677, -3.57459, 2.914201, -1.597996)
+
+[node name="CSGBox3D9" type="CSGBox3D" parent="door"]
+transform = Transform3D(-3.0018415, 0, 5.6028366e-06, 0, -1.4194297, 0, 3.8146973e-06, 0, -16.445566, -1.1041307, 1.7634785, 16.613873)
+size = Vector3(0.38330078, 3.6457748, 2.2017899)
+material = SubResource("StandardMaterial3D_a0tk4")
+
+[node name="CSGCylinder3D" type="CSGCylinder3D" parent="."]
+transform = Transform3D(0.99999994, 0, -1.758337e-06, 0, 1, 0, -5.9604645e-08, 0, 1.0000002, -3.5727062, 1.9931147, -1.7112267)
+radius = 0.49902344
+height = 5.546875
+material = SubResource("StandardMaterial3D_a0tk4")
+
+[node name="spawning handler" type="Node" parent="."]
+script = ExtResource("2_fbudy")
+
+[node name="Roach timer" type="Timer" parent="spawning handler"]
+
+[node name="Mantis timer" type="Timer" parent="spawning handler"]
+
+[node name="Beetle timer" type="Timer" parent="spawning handler"]
+
+[node name="Dragonfly timer" type="Timer" parent="spawning handler"]
+
+[node name="Carverant timer" type="Timer" parent="spawning handler"]
+
+[node name="Spider timer" type="Timer" parent="spawning handler"]
+
+[node name="roach" type="CSGBox3D" parent="spawning handler"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.313, -0.7879, 7.81)
+size = Vector3(0.90182495, 4.9061007, 1.6049805)
+
+[node name="beetle" type="CSGCylinder3D" parent="spawning handler"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.2643847, -0.19223166, 4.749953)
+radius = 0.87597656
+height = 3.879509
+
+[node name="mantis" type="CSGSphere3D" parent="spawning handler"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.429932, 2.996422, 5.2885275)
+radius = 0.62942535
+
+[node name="dragonfly" type="CSGTorus3D" parent="spawning handler"]
+transform = Transform3D(0.31281117, -0.8808821, -0.3552407, 0.7273144, -0.018394787, 0.68605787, -0.61087066, -0.47297823, 0.6349241, 4.174433, 3.2999232, 4.6382356)
+
+[node name="carverant" type="CSGPolygon3D" parent="spawning handler"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.7494342, 2.4418209, 6.752766)
+
+[node name="spider" type="CSGCylinder3D" parent="spawning handler"]
+transform = Transform3D(0.92562634, 0.37842777, 0.0028665522, -2.2290036e-10, 0.0075746807, -0.99997133, -0.37843862, 0.9255998, 0.0070113246, 2.5254292, 3.5457442, 4.5170546)
+height = 0.4814453
+
+[node name="Carverant attack" type="Timer" parent="spawning handler"]
+wait_time = 5.0
+one_shot = true
+
+[node name="Spider leave" type="Timer" parent="spawning handler"]
+
+[node name="thump" type="AudioStreamPlayer3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.3549218, 2.630605, -2.6525455)
+stream = ExtResource("2_noarx")
+
+[node name="thump" type="AudioStreamPlayer" parent="thump"]
+stream = ExtResource("2_noarx")
+
+[node name="screen" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label" parent="screen"]
+visible = false
+layout_mode = 0
+offset_left = 127.0
+offset_top = 8.0
+offset_right = 2078.0
+offset_bottom = 1295.0
+text = "you died
+"
+label_settings = SubResource("LabelSettings_noarx")
+
+[node name="Button" type="Button" parent="screen"]
+visible = false
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -100.0
+offset_top = -126.0
+offset_right = 100.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "restart?"
+
+[node name="Label2" type="Label" parent="screen"]
+visible = false
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+text = "You won or somthing!!!!!!!!1111!!!11one"
+
+[node name="tableface" type="CSGBox3D" parent="."]
+transform = Transform3D(-0.031498015, 0, -0.99950385, 0, 1, 0, 0.99950385, 0, -0.031498015, -1.5583365, 0.42507088, 0.021109104)
+size = Vector3(1.9267578, 1.3552856, 3.0431519)
+material = SubResource("ORMMaterial3D_noarx")
+
+[node name="phone" type="CSGBox3D" parent="."]
+transform = Transform3D(-0.5849153, 0, -0.8110944, 0, 1, 0, 0.8110944, 0, -0.5849153, -0.8250867, 1.0716643, -0.22180235)
+size = Vector3(0.37597656, 0.107177734, 1)
+
+[node name="phonehb" type="Area3D" parent="phone"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="phone/phonehb"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.10493213, 0)
+shape = SubResource("BoxShape3D_cbffv")
+
+[node name="speaker" type="CSGBox3D" parent="."]
+transform = Transform3D(0.8270136, -0.07238757, 0.5575024, 0.11597448, 0.9923125, -0.043195065, -0.55008984, 0.1003789, 0.82905114, -1.0171214, 1.3367727, 0.5790112)
+size = Vector3(0.37597656, 0.6872406, 0.50097656)
+
+[node name="speakerhb" type="Area3D" parent="speaker"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="speaker/speakerhb"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.020990252, 0, 0)
+shape = SubResource("BoxShape3D_noarx")
+
+[node name="phone timer" type="Timer" parent="."]
+one_shot = true
+
+[node name="CSGCylinder3D2" type="CSGCylinder3D" parent="."]
+transform = Transform3D(-0.5849153, 0, -0.8110944, 0, 1, 0, 0.8110944, 0, -0.5849153, 0.11277175, 2.517603, -4.1916847)
+height = 0.3515625
+script = ExtResource("4_0m7cd")
+
+[node name="dronehb" type="Area3D" parent="CSGCylinder3D2"]
+transform = Transform3D(-0.5849153, 0, 0.8110944, 0, 1, 0, -0.8110944, 0, -0.5849153, 0, 0, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="CSGCylinder3D2/dronehb"]
+shape = SubResource("CylinderShape3D_noarx")
+
+[node name="dronecb" type="Area3D" parent="CSGCylinder3D2"]
+transform = Transform3D(-0.3157482, 0, -0.948843, 0, 1, 0, 0.948843, 0, -0.3157482, 0, 0, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="CSGCylinder3D2/dronecb"]
+shape = SubResource("CylinderShape3D_a0tk4")
+
+[node name="turn point outside" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.472, 2.518, -2.532)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="turn point outside"]
+shape = SubResource("SphereShape3D_a0tk4")
+
+[node name="turn point in house" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.287, 2.516, -2.64)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="turn point in house"]
+shape = SubResource("SphereShape3D_a0tk4")
+
+[node name="CSGBox3D9" type="CSGBox3D" parent="."]
+transform = Transform3D(-0.9998783, 0, -0.015602559, 0, 1, 0, 0.015602559, 0, -0.9998783, -0.15173697, 1.0243528, -4.4667916)
+size = Vector3(1.71875, 4.2163696, 1)
+
+[node name="Food handler" type="Node" parent="."]
+script = ExtResource("5_0m7cd")
+
+[node name="Timer" type="Timer" parent="."]
+wait_time = 90.0
+one_shot = true
+autostart = true
+
+[node name="glass" type="AudioStreamPlayer3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.7968974, 2.630605, -0.38691843)
+stream = ExtResource("2_noarx")
+pitch_scale = 1.47
+
+[node name="glass" type="AudioStreamPlayer" parent="glass"]
+stream = ExtResource("3_oe8ih")
+
+[node name="buzz" type="AudioStreamPlayer3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.7968974, 2.630605, -0.38691843)
+stream = ExtResource("4_xuee5")
+pitch_scale = 2.22
+
+[node name="buzz" type="AudioStreamPlayer" parent="buzz"]
+stream = ExtResource("4_xuee5")
+
+[node name="static" type="AudioStreamPlayer3D" parent="."]
+
+[node name="static" type="AudioStreamPlayer" parent="static"]
+stream = ExtResource("5_smepj")
+
+[connection signal="clicked" from="Player" to="." method="_on_player_clicked"]
+[connection signal="timeout" from="spawning handler/Roach timer" to="spawning handler" method="_on_roach_timer_timeout"]
+[connection signal="timeout" from="spawning handler/Mantis timer" to="spawning handler" method="_on_mantis_timer_timeout"]
+[connection signal="timeout" from="spawning handler/Beetle timer" to="spawning handler" method="_on_beetle_timer_timeout"]
+[connection signal="timeout" from="spawning handler/Dragonfly timer" to="spawning handler" method="_on_dragonfly_timer_timeout"]
+[connection signal="timeout" from="spawning handler/Carverant timer" to="spawning handler" method="_on_carverant_timer_timeout"]
+[connection signal="timeout" from="spawning handler/Spider timer" to="spawning handler" method="_on_spider_timer_timeout"]
+[connection signal="timeout" from="spawning handler/Carverant attack" to="spawning handler" method="_on_carverant_attack_timeout"]
+[connection signal="timeout" from="spawning handler/Spider leave" to="spawning handler" method="_on_spider_leave_timeout"]
+[connection signal="pressed" from="screen/Button" to="." method="_on_button_pressed"]
+[connection signal="timeout" from="phone timer" to="CSGCylinder3D2" method="_on_phone_timer_timeout"]
+[connection signal="area_entered" from="CSGCylinder3D2/dronehb" to="CSGCylinder3D2" method="_on_dronehb_area_entered"]
+[connection signal="timeout" from="Timer" to="spawning handler" method="_on_timer_timeout"]
