@@ -1,5 +1,6 @@
 extends Node
 @onready var main = $".."
+var mantis = Enemy.new(0, 2, 1 , $'Mantis timer', Enemy.BugType.GROUND)
 var agressions = {"mantis" : 0, "roach" : 0, "beetle" : 0, "carverant" : 0, "dragonfly" : 20, "spider" : 0}
 var minmov = {"mantis" : 2, "roach" : 3, "beetle" : 5, "carverant" : 2, "dragonfly" : 1, "spider" : 4}
 var phasecount = {"mantis" : 1, "roach" : 2, "beetle" : 2,"carverant" : 1, "dragonfly" : 1, "spider" : 3}
